@@ -125,5 +125,9 @@ main(int argc, char *argv[])
 	if (ret)
 		return ret;
 
+	ret = run_on_random_cpu(check_counter, NULL, &options, NULL);
+	if (ret)
+		return ret;
+
 	return 0;
 }

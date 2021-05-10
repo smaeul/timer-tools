@@ -20,4 +20,12 @@ typedef void *(*worker_fn)(void *context, long cpu);
 int run_on_all_cpus(worker_fn worker, fold_fn fold, const pthread_attr_t *attr, void *context,
                     void *result);
 
+/**
+ * Run `worker` on any CPU, passing it the context and a CPU number of -1. While the thread is
+ * running, dynamically move it to other CPUs at random.
+ *
+ * Returns 0 on success or errno on failure.
+ */
+int run_on_random_cpu(worker_fn worker, const pthread_attr_t *attr, void *context, void **result);
+
 #endif /* SMP_H */
