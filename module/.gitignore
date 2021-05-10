@@ -1,0 +1,13 @@
+#
+# Copyright © 2021 Samuel Holland <samuel@sholland.org>
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
+.*
+*.ko
+*.mod
+*.mod.c
+*.o
+Module.symvers
+modules.order
+!.gitignore
