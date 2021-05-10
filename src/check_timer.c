@@ -17,17 +17,20 @@
 
 #define BITS(n) ((1 << (n)) - 1)
 
+struct options {
+	unsigned long duration;
+};
+
 void *
 check_timer(void *context, long cpu)
 {
+	struct options *options = context;
 	uint64_t after, before, compare, tval;
 	uint64_t start  = read_cntvct();
 	uint64_t rfails = 0;
 	uint64_t wfails = 0;
 	uint64_t iters  = 0;
 	uint64_t skips  = 0;
-
-	(void)context;
 
 	do {
 		/* Choose a random timer value. */
@@ -78,10 +81,10 @@ check_timer(void *context, long cpu)
 		}
 
 		++iters;
-	} while (after < start + ONE_HOUR);
+	} while (after < start + options->duration * ONE_SECOND);
 
-	printf("%ld: Finished. %ju tries, %ju read fails, %ju write fails, %ju skips.\n",
-	       cpu, iters, rfails, wfails, skips);
+	printf("%ld: Finished. %ju tries (%ju/s), %ju read fails, %ju write fails, %ju skips\n",
+	       cpu, iters, iters / options->duration, rfails, wfails, skips);
 
 	return NULL;
 }
@@ -89,13 +92,17 @@ check_timer(void *context, long cpu)
 int
 main(int argc, char *argv[])
 {
+	struct options options = {.duration = 60};
 	int c, ret;
 
-	while ((c = getopt(argc, argv, "h")) > 0) {
+	while ((c = getopt(argc, argv, ":d:h")) > 0) {
 		switch (c) {
+		case 'd':
+			options.duration = strtoul(optarg, NULL, 0);
+			break;
 		case 'h':
 		default:
-			printf("usage: %s\n", argv[0]);
+			printf("usage: %s [-d DURATION]\n", argv[0]);
 			return c != 'h';
 		}
 	}
@@ -104,7 +111,7 @@ main(int argc, char *argv[])
 	setvbuf(stderr, NULL, _IOLBF, BUFSIZ);
 	srandom(4);
 
-	ret = run_on_all_cpus(check_timer, NULL, NULL, NULL, NULL);
+	ret = run_on_all_cpus(check_timer, NULL, NULL, &options, NULL);
 	if (ret)
 		return ret;
 

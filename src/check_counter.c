@@ -21,6 +21,7 @@
 #define BLOCK_SIZE  (BLOCK_START + 8192)
 
 struct options {
+	unsigned long duration;
 	bool physical;
 };
 
@@ -87,10 +88,10 @@ check_counter(void *context, long cpu)
 		/* Add a tiny but variable delay to ensure all patterns are exercised. */
 		delay.tv_nsec = random() >> 20;
 		nanosleep(&delay, NULL);
-	} while (read_cntvct() < start + ONE_HOUR);
+	} while (read_cntvct() < start + options->duration * ONE_SECOND);
 
-	printf("%ld: Finished. %ju tries, %ju fails, %ju skips.\n", cpu,
-	       iters * BLOCK_SIZE, fails, skips);
+	printf("%ld: Finished. %ju tries (%ju/s), %ju fails, %ju skips\n", cpu, iters * BLOCK_SIZE,
+	       iters * BLOCK_SIZE / options->duration, fails, skips);
 
 	return NULL;
 }
@@ -98,17 +99,20 @@ check_counter(void *context, long cpu)
 int
 main(int argc, char *argv[])
 {
-	struct options options = {0};
+	struct options options = {.duration = 60};
 	int c, ret;
 
-	while ((c = getopt(argc, argv, "hp")) > 0) {
+	while ((c = getopt(argc, argv, ":d:hp")) > 0) {
 		switch (c) {
+		case 'd':
+			options.duration = strtoul(optarg, NULL, 0);
+			break;
 		case 'p':
 			options.physical = true;
 			break;
 		case 'h':
 		default:
-			printf("usage: %s [-p]\n", argv[0]);
+			printf("usage: %s [-d DURATION] [-p]\n", argv[0]);
 			return c != 'h';
 		}
 	}
