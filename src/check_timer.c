@@ -19,6 +19,7 @@
 
 struct options {
 	unsigned long duration;
+	bool skip;
 };
 
 void *
@@ -42,7 +43,7 @@ check_timer(void *context, long cpu)
 		after = read_cntvct();
 
 		/* Cannot test the timer if the counter is broken. */
-		if (before > after) {
+		if (options->skip && before > after) {
 			++skips;
 			continue;
 		}
@@ -65,7 +66,7 @@ check_timer(void *context, long cpu)
 		after   = read_cntvct();
 
 		/* Cannot test the timer if the counter is broken. */
-		if (before > after) {
+		if (options->skip && before > after) {
 			++skips;
 			continue;
 		}
@@ -95,10 +96,13 @@ main(int argc, char *argv[])
 	struct options options = {.duration = 60};
 	int c, ret;
 
-	while ((c = getopt(argc, argv, ":d:h")) > 0) {
+	while ((c = getopt(argc, argv, ":d:hs")) > 0) {
 		switch (c) {
 		case 'd':
 			options.duration = strtoul(optarg, NULL, 0);
+			break;
+		case 's':
+			options.skip = true;
 			break;
 		case 'h':
 		default:

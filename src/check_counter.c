@@ -23,6 +23,7 @@
 struct options {
 	unsigned long duration;
 	bool physical;
+	bool skip;
 };
 
 void *
@@ -64,7 +65,7 @@ check_counter(void *context, long cpu)
 				bad = -1;
 
 			/* Skip failures covered by the existing workaround. */
-			if (bad >= 0 && ((data[bad] + 1) & BITS(10)) <= 1) {
+			if (options->skip && bad >= 0 && ((data[bad] + 1) & BITS(10)) <= 1) {
 				++skips;
 				continue;
 			}
@@ -102,13 +103,16 @@ main(int argc, char *argv[])
 	struct options options = {.duration = 60};
 	int c, ret;
 
-	while ((c = getopt(argc, argv, ":d:hp")) > 0) {
+	while ((c = getopt(argc, argv, ":d:hps")) > 0) {
 		switch (c) {
 		case 'd':
 			options.duration = strtoul(optarg, NULL, 0);
 			break;
 		case 'p':
 			options.physical = true;
+			break;
+		case 's':
+			options.skip = true;
 			break;
 		case 'h':
 		default:
