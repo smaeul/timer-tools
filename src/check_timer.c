@@ -14,13 +14,9 @@
 #include <constants.h>
 #include <smp.h>
 #include <sysreg.h>
+#include <timer_tools.h>
 
 #define BITS(n) ((1 << (n)) - 1)
-
-struct options {
-	unsigned long duration;
-	bool skip;
-};
 
 void *
 check_timer(void *context, long cpu)
@@ -88,40 +84,4 @@ check_timer(void *context, long cpu)
 	       cpu, iters, iters / options->duration, rfails, wfails, skips);
 
 	return NULL;
-}
-
-int
-main(int argc, char *argv[])
-{
-	struct options options = {.duration = 60};
-	int c, ret;
-
-	while ((c = getopt(argc, argv, ":d:hs")) > 0) {
-		switch (c) {
-		case 'd':
-			options.duration = strtoul(optarg, NULL, 0);
-			break;
-		case 's':
-			options.skip = true;
-			break;
-		case 'h':
-		default:
-			printf("usage: %s [-d DURATION]\n", argv[0]);
-			return c != 'h';
-		}
-	}
-
-	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
-	setvbuf(stderr, NULL, _IOLBF, BUFSIZ);
-	srandom(4);
-
-	ret = run_on_all_cpus(check_timer, NULL, NULL, &options, NULL);
-	if (ret)
-		return ret;
-
-	ret = run_on_random_cpu(check_timer, NULL, &options, NULL);
-	if (ret)
-		return ret;
-
-	return 0;
 }
