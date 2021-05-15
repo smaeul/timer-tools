@@ -20,6 +20,7 @@ COMMON_CFLAGS	 = -Os -pipe -std=c11 \
 		   -fno-common \
 		   -fvar-tracking-assignments \
 		   -g$(if $(DEBUG),gdb,0) \
+		   -pthread \
 		   -Wall -Wextra -Wformat=2 -Wpedantic -Wshadow \
 		   -Werror=implicit-function-declaration \
 		   -Werror=implicit-int \
